@@ -157,7 +157,7 @@ github.com/docker/cli/cli/connhelper/commandconn
 github.com/docker/distribution/digestset
 github.com/docker/distribution/reference
 github.com/docker/distribution/registry/api/errcode
-# github.com/docker/docker v20.10.0-beta1.0.20201110211921-af34b94a78a1+incompatible
+# github.com/docker/docker v20.10.0-beta1.0.20201110211921-af34b94a78a1+incompatible => github.com/cpuguy83/docker v0.0.0-20210406002447-5616f4544aef
 github.com/docker/docker/api
 github.com/docker/docker/api/types
 github.com/docker/docker/api/types/blkiodev
@@ -176,6 +176,10 @@ github.com/docker/docker/api/types/versions
 github.com/docker/docker/api/types/volume
 github.com/docker/docker/client
 github.com/docker/docker/errdefs
+github.com/docker/docker/libnetwork/ipamutils
+github.com/docker/docker/libnetwork/resolvconf
+github.com/docker/docker/libnetwork/resolvconf/dns
+github.com/docker/docker/libnetwork/types
 github.com/docker/docker/opts
 github.com/docker/docker/pkg/archive
 github.com/docker/docker/pkg/chrootarchive
@@ -206,11 +210,6 @@ github.com/docker/go-connections/tlsconfig
 github.com/docker/go-events
 # github.com/docker/go-units v0.4.0
 github.com/docker/go-units
-# github.com/docker/libnetwork v0.8.0-dev.2.0.20200917202933-d0951081b35f
-github.com/docker/libnetwork/ipamutils
-github.com/docker/libnetwork/resolvconf
-github.com/docker/libnetwork/resolvconf/dns
-github.com/docker/libnetwork/types
 # github.com/gofrs/flock v0.7.3
 github.com/gofrs/flock
 # github.com/gogo/googleapis v1.3.2
@@ -375,8 +374,9 @@ golang.org/x/net/trace
 golang.org/x/sync/errgroup
 golang.org/x/sync/semaphore
 golang.org/x/sync/singleflight
-# golang.org/x/sys v0.0.0-20201013081832-0aaa2718063a
+# golang.org/x/sys v0.0.0-20210403161142-5e06dd20ab57
 golang.org/x/sys/cpu
+golang.org/x/sys/execabs
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
