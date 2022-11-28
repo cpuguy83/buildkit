@@ -19,20 +19,20 @@ WORKDIR /go/src/github.com/moby/buildkit
 
 FROM base AS tools
 RUN --mount=type=bind,target=.,rw \
-    --mount=type=cache,target=/root/.cache \
-    --mount=type=cache,target=/go/pkg/mod \
-    go install \
-      github.com/gogo/protobuf/protoc-gen-gogo \
-      github.com/gogo/protobuf/protoc-gen-gogofaster \
-      github.com/gogo/protobuf/protoc-gen-gogoslick \
-      github.com/golang/protobuf/protoc-gen-go
+  --mount=type=cache,target=/root/.cache \
+  --mount=type=cache,target=/go/pkg/mod \
+  go install \
+  github.com/gogo/protobuf/protoc-gen-gogo \
+  github.com/gogo/protobuf/protoc-gen-gogofaster \
+  github.com/gogo/protobuf/protoc-gen-gogoslick \
+  github.com/golang/protobuf/protoc-gen-go
 
 FROM tools AS generated
 RUN --mount=type=bind,target=.,rw <<EOT
   set -ex
   go generate -mod=vendor -v ./...
   mkdir /out
-  git ls-files -m --others -- ':!vendor' '**/*.pb.go' | tar -cf - --files-from - | tar -C /out -xf -
+  git ls-files -m --others -- ':!vendor' '*.pb.go' | tar -cf - --files-from - | tar -C /out -xf -
 EOT
 
 FROM scratch AS update
@@ -40,7 +40,7 @@ COPY --from=generated /out /
 
 FROM base AS validate
 RUN --mount=type=bind,target=.,rw \
-    --mount=type=bind,from=generated,source=/out,target=/generated-files <<EOT
+  --mount=type=bind,from=generated,source=/out,target=/generated-files <<EOT
   set -e
   git add -A
   if [ "$(ls -A /generated-files)" ]; then
