@@ -22,7 +22,7 @@ import (
 	"github.com/moby/buildkit/solver"
 	"github.com/moby/buildkit/solver/llbsolver/provenance"
 	"github.com/moby/buildkit/solver/result"
-	sourcepolicypb "github.com/moby/buildkit/sourcepolicy/pb"
+	spb "github.com/moby/buildkit/sourcepolicy/pb"
 	"github.com/moby/buildkit/util/buildinfo"
 	"github.com/moby/buildkit/util/compression"
 	"github.com/moby/buildkit/util/entitlements"
@@ -129,7 +129,7 @@ func (s *Solver) Bridge(b solver.Builder) frontend.FrontendLLBBridge {
 	return s.bridge(b)
 }
 
-func (s *Solver) Solve(ctx context.Context, id string, sessionID string, req frontend.SolveRequest, exp ExporterRequest, ent []entitlements.Entitlement, post []Processor, srcPol *sourcepolicypb.Policy) (_ *client.SolveResponse, err error) {
+func (s *Solver) Solve(ctx context.Context, id string, sessionID string, req frontend.SolveRequest, exp ExporterRequest, ent []entitlements.Entitlement, post []Processor, srcPol *spb.Policy) (_ *client.SolveResponse, err error) {
 	j, err := s.solver.NewJob(id)
 	if err != nil {
 		return nil, err
@@ -677,10 +677,10 @@ func loadEntitlements(b solver.Builder) (entitlements.Set, error) {
 	return ent, nil
 }
 
-func loadSourcePolicy(b solver.Builder) (*sourcepolicypb.Policy, error) {
-	set := make(map[sourcepolicypb.Rule]struct{}, 0)
+func loadSourcePolicy(b solver.Builder) (*spb.Policy, error) {
+	set := make(map[spb.Rule]struct{}, 0)
 	err := b.EachValue(context.TODO(), keySourcePolicy, func(v interface{}) error {
-		x, ok := v.(sourcepolicypb.Policy)
+		x, ok := v.(spb.Policy)
 		if !ok {
 			return errors.Errorf("invalid source policy %T", v)
 		}
@@ -692,9 +692,9 @@ func loadSourcePolicy(b solver.Builder) (*sourcepolicypb.Policy, error) {
 	if err != nil {
 		return nil, err
 	}
-	var srcPol *sourcepolicypb.Policy
+	var srcPol *spb.Policy
 	if len(set) > 0 {
-		srcPol = &sourcepolicypb.Policy{}
+		srcPol = &spb.Policy{}
 		for k := range set {
 			k := k
 			srcPol.Rules = append(srcPol.Rules, &k)
