@@ -35,7 +35,17 @@ func (bc *Client) Build(ctx context.Context, fn BuildFunc) (*ResultBuilder, erro
 
 	for i, tp := range targets {
 		i, tp := i, tp
-		eg.Go(func() error {
+		eg.Go(func() (retErr error) {
+			defer func() {
+				if r := recover(); r != nil {
+					if err, ok := r.(error); ok {
+						retErr = fmt.Errorf("panic: %w", err)
+						return
+					}
+					retErr = fmt.Errorf("panic: %v", r)
+				}
+			}()
+
 			ref, img, baseImg, err := fn(ctx, tp, i)
 			if err != nil {
 				return err
