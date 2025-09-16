@@ -373,6 +373,7 @@ type GitInfo struct {
 	Ref              string
 	SubDir           string
 	SkipSubmodules   bool
+	TagsFilter       string
 }
 
 func GitRef(v string) GitOption {

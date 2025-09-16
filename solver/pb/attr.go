@@ -8,6 +8,7 @@ const AttrKnownSSHHosts = "git.knownsshhosts"
 const AttrMountSSHSock = "git.mountsshsock"
 const AttrGitChecksum = "git.checksum"
 const AttrGitSkipSubmodules = "git.skipsubmodules"
+const AttrGitFetchTags = "git.fetchtags"
 
 const AttrLocalSessionID = "local.session"
 const AttrLocalUniqueID = "local.unique"
