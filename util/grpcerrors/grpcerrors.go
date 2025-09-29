@@ -46,6 +46,7 @@ func ToGRPC(ctx context.Context, err error) error {
 	// If the original error was wrapped with more context than the GRPCStatus error,
 	// copy the original message to the GRPCStatus error
 	if errorHasMoreContext(err, st) {
+		// logErr(err)
 		pb := st.Proto()
 		pb.Message = err.Error()
 		st = status.FromProto(pb)
@@ -74,12 +75,19 @@ func ToGRPC(ctx context.Context, err error) error {
 
 // errorHasMoreContext checks if the original error provides more context by having
 // a different message or additional details than the Status.
-func errorHasMoreContext(err error, st *status.Status) bool {
+func errorHasMoreContext(err error, st *status.Status) (ret bool) {
 	if errMessage := err.Error(); len(errMessage) > len(st.Message()) {
 		// check if the longer message in errMessage is only due to
 		// prepending with the status code
 		var grpcStatusError *grpcStatusError
 		if errors.As(err, &grpcStatusError) {
+			defer func() {
+				if ret {
+					return
+				}
+
+				bklog.G(context.TODO()).WithField("st.code", st.Code()).WithField("st.message", st.Message()).WithField("grpcstatus.code", grpcStatusError.st.Code()).WithField("grpcstatus.message", grpcStatusError.st.Message()).Warnf("error has more context")
+			}()
 			return st.Code() != grpcStatusError.st.Code() || st.Message() != grpcStatusError.st.Message()
 		}
 		return true
@@ -142,10 +150,20 @@ func Code(err error) codes.Code {
 	}
 
 	if wrapped, ok := err.(multiUnwrapper); ok {
+		var hasUnknown bool
+
 		for _, err := range wrapped.Unwrap() {
-			if c := Code(err); c != codes.OK && c != codes.Unknown {
+			c := Code(err)
+			if c != codes.OK && c != codes.Unknown {
 				return c
 			}
+			if c == codes.Unknown {
+				hasUnknown = true
+			}
+		}
+
+		if hasUnknown {
+			return codes.Unknown
 		}
 	}
 
@@ -159,7 +177,7 @@ func WrapCode(err error, code codes.Code) error {
 // AsGRPCStatus tries to extract a gRPC status from the error.
 // Supports  `Unwrap() error` and `Unwrap() []error` for wrapped errors.
 // When the `Unwrap() []error` returns multiple errors, the first one that
-// contains a gRPC status is returned.
+// contains a gRPC status that is not OK is returned with the full error message.
 func AsGRPCStatus(err error) (*status.Status, bool) {
 	if err == nil {
 		return nil, true
@@ -178,7 +196,17 @@ func AsGRPCStatus(err error) (*status.Status, bool) {
 
 	if wrapped, ok := err.(multiUnwrapper); ok {
 		for _, err := range wrapped.Unwrap() {
-			if st, ok := AsGRPCStatus(err); ok && st != nil {
+			st, ok := AsGRPCStatus(err)
+			if !ok {
+				continue
+			}
+
+			if st != nil && st.Code() != codes.OK {
+				// Copy the full status so we can set the full error message
+				// Does the proto conversion so can keep any extra details.
+				// proto := st.Proto()
+				// proto.Message = err.Error()
+				// return status.FromProto(proto), true
 				return st, true
 			}
 		}
@@ -293,4 +321,20 @@ type singleUnwrapper interface {
 
 type multiUnwrapper interface {
 	Unwrap() []error
+}
+
+func logErr(err error) {
+	if w, ok := err.(singleUnwrapper); ok {
+		logErr(w.Unwrap())
+		return
+	}
+
+	if w, ok := err.(multiUnwrapper); ok {
+		for _, err := range w.Unwrap() {
+			logErr(err)
+		}
+		return
+	}
+
+	bklog.G(context.TODO()).WithError(err).Warnf("%T", err)
 }
