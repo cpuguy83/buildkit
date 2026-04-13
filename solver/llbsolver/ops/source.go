@@ -52,6 +52,8 @@ func NewSourceOp(vtx solver.Vertex, op *pb.Op_Source, platform *pb.Platform, sm 
 func (s *SourceOp) IsProvenanceProvider() {}
 
 func (s *SourceOp) Pin() (source.Identifier, string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.id, s.pin
 }
 
@@ -85,9 +87,11 @@ func (s *SourceOp) CacheMap(ctx context.Context, jobCtx solver.JobContext, index
 		return nil, false, err
 	}
 
+	s.mu.Lock()
 	if s.pin == "" {
 		s.pin = pin
 	}
+	s.mu.Unlock()
 
 	dgst, err := cachedigest.FromBytes([]byte(sourceCacheType+":"+k), cachedigest.TypeString)
 	if err != nil {
