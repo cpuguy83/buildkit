@@ -290,9 +290,11 @@ func captureProvenance(ctx context.Context, res solver.CachedResultWithProvenanc
 		switch op := pp.(type) {
 		case *ops.SourceOp:
 			id, pin := op.Pin()
-			err := id.Capture(c, pin)
-			if err != nil {
-				return err
+			if id != nil && pin != "" {
+				err := id.Capture(c, pin)
+				if err != nil {
+					return err
+				}
 			}
 		case *ops.ExecOp:
 			pr := op.Proto()
